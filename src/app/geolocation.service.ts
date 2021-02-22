@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { from, Observable } from 'rxjs';
+import { Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -7,16 +7,18 @@ import { from, Observable } from 'rxjs';
 export class GeolocationService {
 
   public getPosition(): Observable<Position> {
-    return from(new Promise((resolve, reject) => {
 
-      navigator.geolocation.getCurrentPosition(location => {
-          resolve(location);
+    return new Observable<Position>((subscriber) => {
+
+      navigator.geolocation.getCurrentPosition(
+        location =>  {
+          subscriber.next(location);
+          subscriber.complete();
         },
+        err => subscriber.error(err)
+      );
 
-        err => {
-          reject(err);
-        });
+    });
 
-    })) as Observable<Position>;
   }
 }
