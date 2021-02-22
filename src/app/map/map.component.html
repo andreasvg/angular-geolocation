@@ -1,9 +1,37 @@
 <h1>Map Component</h1>
 
 <div>
+  <strong>Timestamp: </strong><span>{{timestamp | date: 'dd MMMM yyyy HH:mm'}}</span>
+</div>
+
+<div>
   <strong>Latitude: </strong><span>{{latitude}}</span>
 </div>
 
 <div>
   <strong>Longitude: </strong><span>{{longitude}}</span>
 </div>
+
+<div>
+  <strong>Accuracy: </strong><span>{{accuracy}}</span>
+</div>
+
+<div>
+  <strong>Altitude: </strong><span>{{altitude}}</span>
+</div>
+
+<div>
+  <strong>Altitude Accuracy: </strong><span>{{altitudeAccuracy}}</span>
+</div>
+
+<div>
+  <strong>Heading: </strong><span>{{heading}}</span>
+</div>
+
+<div>
+  <strong>Speed: </strong><span>{{speed}}</span>
+</div>
+
+
+<button (click)="onStartWatchingClick()" [disabled]="watchingActive">Start watching</button>
+<button (click)="onStopWatchingClick()" [disabled]="!watchingActive">Stop watching</button>
