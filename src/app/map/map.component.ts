@@ -59,7 +59,10 @@ export class MapComponent implements OnInit, OnDestroy {
     if (this.locationSubscription) {
       this.locationSubscription.unsubscribe();
     }
+
     this.watchingActive = false;
+    this.geolocationService.stopWatching();
+
   }
 
   ngOnDestroy(): void {

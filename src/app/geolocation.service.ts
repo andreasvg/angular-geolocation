@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
-import { share } from 'rxjs/operators';
+import { Observable, ReplaySubject } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -13,6 +12,8 @@ export class GeolocationService {
   };
 
   private watchId: number;
+  private positionSubject: ReplaySubject<Position> = new ReplaySubject<Position>(1);
+  private positionStream$: Observable<Position> = this.positionSubject.asObservable();
 
   public getPosition(): Observable<Position> {
 
@@ -31,33 +32,57 @@ export class GeolocationService {
 
   }
 
+  public get positionWatchIsActive(): boolean {
+    return (this.watchId > 0);
+  }
+
   public startWatching(): Observable<Position> {
 
-    return new Observable<Position>((subscriber) => {
+    if (this.positionWatchIsActive) {
+      console.log('returning existing stream');
+      return this.positionStream$;
+    } else {
 
-      this.watchId = navigator.geolocation.watchPosition(
-        location =>  {
-          subscriber.next(location);
-        },
-        err => subscriber.error(this.locationError(err)),
-        this.geoOptions
-      );
+      console.log('creating new stream');
 
-      return () => {
-        console.log('about to tear down');
-        this.stopWatching();
-      }
+      const stream$: Observable<Position> =  new Observable<Position>((subscriber) => {
 
-    }).pipe(
-      share()
-    );
+        this.watchId = navigator.geolocation.watchPosition(
+          location =>  {
+            console.log('item returned from geolocation');
+            // possibly call some cleanup code here to check if we still have observers...
+
+            subscriber.next(location);
+          },
+          err => {
+            this.watchId = null;
+            subscriber.error(this.locationError(err));
+          },
+          this.geoOptions
+        );
+
+        return () => {};
+
+      });
+
+      stream$.subscribe(this.positionSubject);  // proxy via the subject to multicast
+      return this.positionStream$;
+
+    }
 
   }
 
-  private stopWatching(): void {
+  public stopWatching(): void {
     if (this.watchId) {
-      console.log('tearing down');
-      navigator.geolocation.clearWatch(this.watchId);
+      console.log(this.positionSubject.observers.length);
+
+      if (this.positionSubject.observers.length === 0) {
+        // tear down if no more observers are watching
+        console.log('tearing down');
+        navigator.geolocation.clearWatch(this.watchId);
+        this.watchId = null;
+      }
+
     }
   }
 
