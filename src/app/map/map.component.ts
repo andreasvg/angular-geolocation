@@ -1,5 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
+import { AlertingService } from '../alerting.service';
 import { GeolocationService } from '../geolocation.service';
 
 @Component({
@@ -19,7 +20,7 @@ export class MapComponent implements OnInit, OnDestroy {
   public heading: number;
   public speed: number;
 
-  constructor(private geolocationService: GeolocationService) { }
+  constructor(private geolocationService: GeolocationService, private alertingService: AlertingService) { }
 
 
   ngOnInit(): void {
@@ -39,6 +40,9 @@ export class MapComponent implements OnInit, OnDestroy {
   }
 
   public onStartWatchingClick(): void {
+    this.watchingActive = true;
+    this.alertingService.info('Watching location changes...');
+
     this.locationSubscription = this.geolocationService.startWatching().subscribe(
       location => {
         console.log(location);
@@ -50,9 +54,13 @@ export class MapComponent implements OnInit, OnDestroy {
         this.altitudeAccuracy = location.coords.altitudeAccuracy;
         this.heading = location.coords.heading;
         this.speed = location.coords.speed;
+      },
+      err => {
+        this.watchingActive = false;
+        this.alertingService.error(err);
       }
     );
-    this.watchingActive = true;
+
   }
 
   public onStopWatchingClick(): void {
@@ -62,7 +70,7 @@ export class MapComponent implements OnInit, OnDestroy {
 
     this.watchingActive = false;
     this.geolocationService.stopWatching();
-
+    this.alertingService.info('Stopped watching location changes');
   }
 
   ngOnDestroy(): void {

@@ -2,3 +2,25 @@
 
 html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+// Alerting Service styles
+
+.snackbar-success {
+  background-color: rgb(62, 148, 62);
+  color: white;
+}
+
+.snackbar-warning {
+  background-color: rgb(238, 174, 56);
+  color: black;
+}
+
+.snackbar-info {
+  background-color: rgb(116, 116, 189);
+  color: white;
+}
+
+.snackbar-error {
+  background-color: rgb(209, 66, 66);
+  color: white;
+}
