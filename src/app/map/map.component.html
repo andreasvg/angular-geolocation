@@ -1,50 +1,53 @@
-<h1>Map Component</h1>
+<div id="map-component">
 
-<div>
-  <strong>Timestamp: </strong><span>{{timestamp | date: 'dd MMMM yyyy HH:mm'}}</span>
+  <h1>Geolocation</h1>
+
+  <div>
+    <strong>Timestamp: </strong><span>{{timestamp | date: 'dd MMMM yyyy HH:mm'}}</span>
+  </div>
+
+  <div>
+    <strong>Latitude: </strong><span>{{latitude}}</span>
+  </div>
+
+  <div>
+    <strong>Longitude: </strong><span>{{longitude}}</span>
+  </div>
+
+  <div>
+    <strong>Accuracy: </strong><span>{{accuracy}}</span>
+  </div>
+
+  <div>
+    <strong>Altitude: </strong><span>{{altitude}}</span>
+  </div>
+
+  <div>
+    <strong>Altitude Accuracy: </strong><span>{{altitudeAccuracy}}</span>
+  </div>
+
+  <div>
+    <strong>Heading: </strong><span>{{heading}}</span>
+  </div>
+
+  <div>
+    <strong>Speed: </strong><span>{{speed}}</span>
+  </div>
+
+
+  <button (click)="onStartWatchingClick()" [disabled]="watchingActive">Start watching</button>
+  <button (click)="onStopWatchingClick()" [disabled]="!watchingActive">Stop watching</button>
+
+  <a *ngIf="latitude"
+    href="https://google.com/maps?q={{latitude}},{{longitude}}"
+    target="_blank" class="map-link">
+    Show in Google Maps
+  </a>
+
+  <a *ngIf="latitude"
+    href="https://www.openstreetmap.org/#map=18/{{latitude}}/{{longitude}}"
+    target="_blank" class="map-link">
+    Show in Open Street Maps
+  </a>
+
 </div>
-
-<div>
-  <strong>Latitude: </strong><span>{{latitude}}</span>
-</div>
-
-<div>
-  <strong>Longitude: </strong><span>{{longitude}}</span>
-</div>
-
-<div>
-  <strong>Accuracy: </strong><span>{{accuracy}}</span>
-</div>
-
-<div>
-  <strong>Altitude: </strong><span>{{altitude}}</span>
-</div>
-
-<div>
-  <strong>Altitude Accuracy: </strong><span>{{altitudeAccuracy}}</span>
-</div>
-
-<div>
-  <strong>Heading: </strong><span>{{heading}}</span>
-</div>
-
-<div>
-  <strong>Speed: </strong><span>{{speed}}</span>
-</div>
-
-
-<button (click)="onStartWatchingClick()" [disabled]="watchingActive">Start watching</button>
-<button (click)="onStopWatchingClick()" [disabled]="!watchingActive">Stop watching</button>
-
-<a *ngIf="latitude"
-   href="https://google.com/maps?q={{latitude}},{{longitude}}"
-   target="_blank" class="map-link">
-   Show in Google Maps
-</a>
-
-<a *ngIf="latitude"
-   href="https://www.openstreetmap.org/#map=18/{{latitude}}/{{longitude}}"
-   target="_blank" class="map-link">
-   Show in Open Street Maps
-</a>
-
