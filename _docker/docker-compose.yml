@@ -1,0 +1,8 @@
+version: '3'
+
+services:
+  angular-geolocation:
+      image: andreasvg/angular-geolocation:latest
+      container_name: arcticbear-geolocation
+      ports:
+          - "8080:80"
