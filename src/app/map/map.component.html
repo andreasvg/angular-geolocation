@@ -35,3 +35,16 @@
 
 <button (click)="onStartWatchingClick()" [disabled]="watchingActive">Start watching</button>
 <button (click)="onStopWatchingClick()" [disabled]="!watchingActive">Stop watching</button>
+
+<a *ngIf="latitude"
+   href="https://google.com/maps?q={{latitude}},{{longitude}}"
+   target="_blank" class="map-link">
+   Show in Google Maps
+</a>
+
+<a *ngIf="latitude"
+   href="https://www.openstreetmap.org/#map=18/{{latitude}}/{{longitude}}"
+   target="_blank" class="map-link">
+   Show in Open Street Maps
+</a>
+

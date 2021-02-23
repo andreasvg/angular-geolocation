@@ -124,5 +124,8 @@
       }
     }
   },
-  "defaultProject": "angular-geolocation"
+  "defaultProject": "angular-geolocation",
+  "cli": {
+    "analytics": false
+  }
 }
