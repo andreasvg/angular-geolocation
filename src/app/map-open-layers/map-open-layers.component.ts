@@ -1,6 +1,9 @@
-import {Map, View} from 'ol';
+import {Map, View, Feature} from 'ol';
 import { fromLonLat } from 'ol/proj';
 import TileLayer from 'ol/layer/Tile';
+import { Point } from 'ol/geom';
+import { Vector as layerVector } from 'ol/layer';
+import { Vector as sourceVector} from 'ol/source';
 import OSM from 'ol/source/OSM';
 
 import { Component, OnDestroy, OnInit } from '@angular/core';
@@ -42,6 +45,7 @@ export class MapOpenLayersComponent implements OnInit, OnDestroy {
         this.speed = location.coords.speed;
 
         this.buildMap();
+        //this.drawMarker();
       }
     );
   }
@@ -62,8 +66,26 @@ export class MapOpenLayersComponent implements OnInit, OnDestroy {
       })
     });
 
-
   }
+
+  // private drawMarker(): void {
+  //   const longLat = fromLonLat([this.longitude, this.latitude]);
+
+  //   const layer = new layerVector({
+  //     source: new sourceVector({
+  //       features: [
+  //         new Feature({
+  //           geometry: new Point(longLat)
+  //         })
+  //       ]
+  //     })
+  //   });
+
+  //   this.map.addLayer(layer);
+  //   console.log(layer);
+  //   console.log('added layer');
+  //   console.log(this.map);
+  // }
 
   ngOnDestroy(): void {
     if (this.locationSubscription) {
