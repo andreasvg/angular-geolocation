@@ -1,0 +1,11 @@
+{
+  "targets": {
+    "geolocation-36874": {
+      "hosting": {
+        "angular-geolocation": [
+          "geolocation-36874"
+        ]
+      }
+    }
+  }
+}

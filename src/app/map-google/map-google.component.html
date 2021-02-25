@@ -1,0 +1,19 @@
+
+<h1>Google Map</h1>
+
+<div id="google-map-container" *ngIf="center">
+
+  <google-map id="google-map"
+    height="500px" width="900px"
+    [center]="center" [options]="options">
+
+    <map-marker
+      *ngFor="let marker of markers"
+      [options]="marker"
+    >
+    </map-marker>
+
+  </google-map>
+
+</div>
+
