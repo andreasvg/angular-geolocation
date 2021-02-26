@@ -1,5 +1,5 @@
 
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { GoogleMap, MapInfoWindow, MapMarker } from '@angular/google-maps';
 import { Subscription } from 'rxjs';
 import { AlertingService } from '../alerting.service';
@@ -18,11 +18,14 @@ interface MarkerModel {
 })
 export class MapGoogleComponent implements OnInit, OnDestroy {
   @ViewChild(GoogleMap, { static: false }) map: GoogleMap;
+  //@ViewChild(GoogleMap, { static: false }) map: google.maps.Map;
   @ViewChild(MapInfoWindow, { static: false }) infoWindow: MapInfoWindow;
+  @ViewChild('directionsPanel', { static: false }) directionsPanel: ElementRef;
 
   public options: google.maps.MapOptions = {
     mapTypeId: 'roadmap',
     zoomControl: true,
+    mapTypeControl: false,
     scrollwheel: false,
     disableDoubleClickZoom: true,
     maxZoom: 19,
@@ -37,6 +40,8 @@ export class MapGoogleComponent implements OnInit, OnDestroy {
   public infoContent: string;
 
   private locationSubscription: Subscription;
+  private directionsService = new google.maps.DirectionsService();
+  private directionsRenderer = new google.maps.DirectionsRenderer();
 
   constructor(private geolocationService: GeolocationService,
               private alertingService: AlertingService) { }
@@ -81,7 +86,7 @@ export class MapGoogleComponent implements OnInit, OnDestroy {
 
   private addMarkers(): void {
     // this.markers.push(this.buildMarkerModel(51.648117501274456, -0.15994922688939106, 'Fox Den', 'Visit the foxes, bring food!'));
-    this.markers.push(this.buildMarkerModel(51.645080623080155, -0.16374454142504222, 'ALDI', 'Buy food here for the foxes.'));
+    this.markers.push(this.buildMarkerModel(51.64463166808768, -0.16374454142504222, 'ALDI', 'Buy food here for the foxes.'));
     this.markers.push(this.buildMarkerModel(51.66095496985717, -0.19316448875380993, ' ', 'Monken Hadley.', 'assets/monkey_icon_56.png'));
     //this.markers.push(this.buildMarkerModel(51.67465111435978, -0.18209131908956167, ' ', 'Pigs.', 'assets/pig_icon_56.png'));
   }
@@ -122,6 +127,55 @@ export class MapGoogleComponent implements OnInit, OnDestroy {
     this.infoHeader = model.infoHeader;
     this.infoContent = model.info;
     this.infoWindow.open(marker);
+  }
+
+  public clearDirections(): void {
+    this.directionsRenderer.setMap(null);
+    this.directionsRenderer.setPanel(null);
+  }
+
+  public showDirectionsMonkey(): void {
+    const monkey = this.markers.find(m => m.info ==='Monken Hadley.');
+    const from = this.userMarker.options.position as google.maps.LatLngLiteral;
+    const to = monkey.options.position as google.maps.LatLngLiteral;
+    this.getDirections(from, to);
+  }
+
+  public showDirectionsAldi(): void {
+    const aldi = this.markers.find(m => m.infoHeader ==='ALDI');
+    const from = this.userMarker.options.position as google.maps.LatLngLiteral;
+    const to = aldi.options.position as google.maps.LatLngLiteral;
+    this.getDirections(from, to);
+  }
+
+  public showDirectionsOldHouse(): void {
+    const from = this.userMarker.options.position as google.maps.LatLngLiteral;
+    const to = '19 Thornfield Avenue, NW7 1LT';
+    this.getDirections(from, to);
+  }
+
+  private getDirections(from: google.maps.LatLngLiteral, to: google.maps.LatLngLiteral | string): void {
+    this.clearDirections();
+
+    this.directionsService.route(
+      {
+        origin: from,
+        destination: to,
+        travelMode: google.maps.TravelMode.WALKING,
+        avoidHighways: true,
+        provideRouteAlternatives: true
+      },
+      (response, status) => {
+        if (status === 'OK') {
+          this.directionsRenderer.setDirections(response);
+
+          this.directionsRenderer.setMap(this.map.googleMap);
+          this.directionsRenderer.setPanel(this.directionsPanel.nativeElement);
+        } else {
+          this.alertingService.error(`Directions service failed (${status})`);
+        }
+      }
+    )
   }
 
   ngOnDestroy(): void {

@@ -35,8 +35,8 @@
   </div>
 
 
-  <button (click)="onStartWatchingClick()" [disabled]="watchingActive">Start watching</button>
-  <button (click)="onStopWatchingClick()" [disabled]="!watchingActive">Stop watching</button>
+  <!-- <button (click)="onStartWatchingClick()" [disabled]="watchingActive">Start watching</button>
+  <button (click)="onStopWatchingClick()" [disabled]="!watchingActive">Stop watching</button> -->
 
   <a *ngIf="latitude"
     href="https://google.com/maps?q={{latitude}},{{longitude}}"

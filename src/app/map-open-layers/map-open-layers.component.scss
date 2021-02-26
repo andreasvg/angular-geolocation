@@ -4,11 +4,13 @@
   border-color: lightgrey;
   padding: 5px 10px 5px 10px;
   margin: 20px 10px 20px 10px;
-  width: 625px;
+  //width: 625px;
+  width: 100%;
 }
 
 #map {
-  width: 600px;
+  //width: 600px;
+  width: calc(100%-20);
   height: 450px;
   margin: 20px 10px 20px 10px;
 }

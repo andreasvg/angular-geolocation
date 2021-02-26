@@ -37,6 +37,7 @@ export class MapComponent implements OnInit, OnDestroy {
     //     this.speed = location.coords.speed;
     //   }
     // );
+    this.onStartWatchingClick();
   }
 
   public onStartWatchingClick(): void {

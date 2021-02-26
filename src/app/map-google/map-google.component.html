@@ -1,34 +1,46 @@
+<div id="map-component">
 
-<h1>Google Map</h1>
+  <h2>Google Map</h2>
 
-<div id="google-map-container" *ngIf="center">
+  <div id="google-map-container" *ngIf="center">
 
-  <google-map id="google-map"
-    height="500px" width="900px"
-    [center]="center"
-    [options]="options">
+    <div id="actions-row">
+      <button (click)="showDirectionsMonkey()">Monkey</button>
+      <button (click)="showDirectionsAldi()">ALDI</button>
+      <button (click)="showDirectionsOldHouse()">Calf</button>
+      <button (click)="clearDirections()">Clear directions</button>
+    </div>
 
-    <map-marker
-      #markerRef="mapMarker"
-      *ngFor="let marker of markers"
-      [options]="marker.options"
-      (mapClick)="openInfo(markerRef, marker)"
-    >
-    </map-marker>
+    <google-map id="google-map"
+      height="500px" width="100%"
+      [center]="center"
+      [options]="options">
 
-    <map-marker *ngIf="userMarker"
-      #markerRefUser="mapMarker"
-      [options]="userMarker.options"
-      (mapClick)="openInfo(markerRefUser, userMarker)"
-    >
-    </map-marker>
+      <map-marker
+        #markerRef="mapMarker"
+        *ngFor="let marker of markers"
+        [options]="marker.options"
+        (mapClick)="openInfo(markerRef, marker)"
+      >
+      </map-marker>
 
-    <map-info-window>
-      <h3>{{ infoHeader }}</h3>
-      {{ infoContent }}
-    </map-info-window>
+      <map-marker *ngIf="userMarker"
+        #markerRefUser="mapMarker"
+        [options]="userMarker.options"
+        (mapClick)="openInfo(markerRefUser, userMarker)"
+      >
+      </map-marker>
 
-  </google-map>
+      <map-info-window>
+        <h3>{{ infoHeader }}</h3>
+        {{ infoContent }}
+      </map-info-window>
+
+    </google-map>
+
+    <div #directionsPanel id="directions-panel">
+    </div>
+
+  </div>
 
 </div>
-

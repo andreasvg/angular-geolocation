@@ -1,4 +1,18 @@
-#google-map-container {
-  // height: 500px;
-  // width: 100%;
- }
+#map-component {
+  border-style: solid;
+  border-width: 1px;
+  border-color: lightgrey;
+  padding: 5px 10px 10px 10px;
+  margin: 20px 10px 20px 10px;
+  //width: 625px;
+  width: 100%;
+}
+
+#actions-row {
+  margin-bottom: 10px;
+  button {
+    display: inline-block;
+    margin: 10px 10px 0px 0px;
+  }
+}
+
