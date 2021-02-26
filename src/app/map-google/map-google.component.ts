@@ -25,7 +25,7 @@ export class MapGoogleComponent implements OnInit, OnDestroy {
     zoomControl: true,
     scrollwheel: false,
     disableDoubleClickZoom: true,
-    maxZoom: 15,
+    maxZoom: 19,
     minZoom: 8,
   };
   public center: google.maps.LatLngLiteral;
@@ -42,25 +42,59 @@ export class MapGoogleComponent implements OnInit, OnDestroy {
               private alertingService: AlertingService) { }
 
   ngOnInit(): void {
+    const bounds = new google.maps.LatLngBounds();
+    let boundsSet: boolean = false;
+
+    this.addMarkers();
+
+    // subscribe to user location changes
     this.locationSubscription = this.geolocationService.startWatching().subscribe(
       location => {
-        this.center = {
-          lat: location.coords.latitude,
-          lng: location.coords.longitude,
-        };
-        this.userMarker = this.buildMarkerModel(location.coords.latitude, location.coords.longitude, 'You', 'You are here');
+
+        this.userMarker = this.buildUserMarker(location.coords.latitude, location.coords.longitude);
+
+        if (!boundsSet) {
+          this.centerMap(location.coords.latitude, location.coords.longitude);
+          bounds.extend(this.userMarker.options.position);
+
+          boundsSet = true;
+          setTimeout(() => {
+            this.map.fitBounds(bounds);
+          }, 100);
+        }
+
       },
       err => {
         this.alertingService.error(err);
       }
     );
 
-    this.addMarker(51.648117501274456, -0.15994922688939106, 'Fox Den', 'Visit the foxes, bring food!');
-    this.addMarker(51.645080623080155, -0.16374454142504222, 'ALDI', 'Buy food here for the foxes.');
+    // extend bounds to include all markers:
+    this.markers.forEach(m => bounds.extend(m.options.position));
   }
 
-  private buildMarkerModel(latitude: number, longitude: number, label: string, info: string): MarkerModel {
-    return {
+  private buildUserMarker(lat: number, long: number): MarkerModel {
+    const marker = this.buildMarkerModel(lat, long, ' ', 'Nici is here', 'assets/giraffe_icon_56.png');
+    marker.options.animation = null;
+    return marker;
+  }
+
+  private addMarkers(): void {
+    // this.markers.push(this.buildMarkerModel(51.648117501274456, -0.15994922688939106, 'Fox Den', 'Visit the foxes, bring food!'));
+    this.markers.push(this.buildMarkerModel(51.645080623080155, -0.16374454142504222, 'ALDI', 'Buy food here for the foxes.'));
+    this.markers.push(this.buildMarkerModel(51.66095496985717, -0.19316448875380993, ' ', 'Monken Hadley.', 'assets/monkey_icon_56.png'));
+    //this.markers.push(this.buildMarkerModel(51.67465111435978, -0.18209131908956167, ' ', 'Pigs.', 'assets/pig_icon_56.png'));
+  }
+
+  private centerMap(lat: number, long: number): void {
+    this.center = {
+      lat: lat,
+      lng: long,
+    };
+  }
+
+  private buildMarkerModel(latitude: number, longitude: number, label: string, info: string, icon?: string): MarkerModel {
+    const model: MarkerModel = {
       options:       {
           animation: google.maps.Animation.DROP,
           position: {
@@ -76,10 +110,12 @@ export class MapGoogleComponent implements OnInit, OnDestroy {
         infoHeader: label,
         info: info
       };
-  }
 
-  private addMarker(latitude: number, longitude: number, label: string, info: string): void {
-    this.markers.push(this.buildMarkerModel(latitude, longitude, label, info));
+    if (icon) {
+      model.options.icon = icon;
+    }
+
+    return model;
   }
 
   public openInfo(marker: MapMarker, model: MarkerModel) {
