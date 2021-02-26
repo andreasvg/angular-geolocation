@@ -8,10 +8,24 @@
     [center]="center" [options]="options">
 
     <map-marker
+      #markerRef="mapMarker"
       *ngFor="let marker of markers"
-      [options]="marker"
+      [options]="marker.options"
+      (mapClick)="openInfo(markerRef, marker)"
     >
     </map-marker>
+
+    <map-marker *ngIf="userMarker"
+      #markerRefUser="mapMarker"
+      [options]="userMarker.options"
+      (mapClick)="openInfo(markerRefUser, userMarker)"
+    >
+    </map-marker>
+
+    <map-info-window>
+      <h3>{{ infoHeader }}</h3>
+      {{ infoContent }}
+    </map-info-window>
 
   </google-map>
 
