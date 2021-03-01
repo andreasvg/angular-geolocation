@@ -30,7 +30,7 @@ export class AlertingService {
     const verticalPosition: MatSnackBarVerticalPosition = 'top';
 
     this.snackBar.open(message, '', {
-      duration: 4000,
+      duration: 2000,
       panelClass: [panelClass],
       horizontalPosition: horizontalPosition,
       verticalPosition: verticalPosition

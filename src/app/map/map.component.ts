@@ -38,6 +38,7 @@ export class MapComponent implements OnInit, OnDestroy {
     //   }
     // );
     this.onStartWatchingClick();
+    this.alertingService.warning('in MapComponent');
   }
 
   public onStartWatchingClick(): void {

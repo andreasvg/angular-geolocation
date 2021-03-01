@@ -1,14 +1,24 @@
 
 import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { GoogleMap, MapInfoWindow, MapMarker } from '@angular/google-maps';
-import { Subscription } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 import { AlertingService } from '../alerting.service';
+import { DistanceService } from '../distance.service';
+import { GeocodeService } from '../geocode.service';
 import { GeolocationService } from '../geolocation.service';
+import { IDistanceModel } from '../models/IDistanceModel';
 
 interface MarkerModel {
   options: google.maps.MarkerOptions;
   infoHeader: string;
   info: string;
+}
+
+interface IFence {
+  north: number,
+  east: number,
+  south: number,
+  west: number
 }
 
 @Component({
@@ -18,7 +28,6 @@ interface MarkerModel {
 })
 export class MapGoogleComponent implements OnInit, OnDestroy {
   @ViewChild(GoogleMap, { static: false }) map: GoogleMap;
-  //@ViewChild(GoogleMap, { static: false }) map: google.maps.Map;
   @ViewChild(MapInfoWindow, { static: false }) infoWindow: MapInfoWindow;
   @ViewChild('directionsPanel', { static: false }) directionsPanel: ElementRef;
 
@@ -27,6 +36,7 @@ export class MapGoogleComponent implements OnInit, OnDestroy {
     zoomControl: true,
     mapTypeControl: false,
     scrollwheel: false,
+    scaleControl: true,
     disableDoubleClickZoom: true,
     maxZoom: 19,
     minZoom: 8,
@@ -43,7 +53,20 @@ export class MapGoogleComponent implements OnInit, OnDestroy {
   private directionsService = new google.maps.DirectionsService();
   private directionsRenderer = new google.maps.DirectionsRenderer();
 
+  private fenceArea = null;
+  private fenceMeters: IFence = {
+    north: 2500,
+    east: 1000,
+    south: 1500,
+    west: 2700
+  };
+
+  private foxDenLatitude: number = 51.648117501274456;
+  private foxDenLongitude: number = -0.15994922688939106;
+
   constructor(private geolocationService: GeolocationService,
+              private geocodeService: GeocodeService,
+              private distanceService: DistanceService,
               private alertingService: AlertingService) { }
 
   ngOnInit(): void {
@@ -51,6 +74,7 @@ export class MapGoogleComponent implements OnInit, OnDestroy {
     let boundsSet: boolean = false;
 
     this.addMarkers();
+    setTimeout(() => this.drawFence(this.foxDenLatitude, this.foxDenLongitude), 3000);  // allow time for geometry library to load
 
     // subscribe to user location changes
     this.locationSubscription = this.geolocationService.startWatching().subscribe(
@@ -66,6 +90,8 @@ export class MapGoogleComponent implements OnInit, OnDestroy {
           setTimeout(() => {
             this.map.fitBounds(bounds);
           }, 100);
+
+          this.determineDistances();
         }
 
       },
@@ -89,6 +115,40 @@ export class MapGoogleComponent implements OnInit, OnDestroy {
     this.markers.push(this.buildMarkerModel(51.64463166808768, -0.16374454142504222, 'ALDI', 'Buy food here for the foxes.'));
     this.markers.push(this.buildMarkerModel(51.66095496985717, -0.19316448875380993, ' ', 'Monken Hadley.', 'assets/monkey_icon_56.png'));
     //this.markers.push(this.buildMarkerModel(51.67465111435978, -0.18209131908956167, ' ', 'Pigs.', 'assets/pig_icon_56.png'));
+  }
+
+  private drawFence(lat: number, long: number): void {
+    let bounds = this.createFenceBounds(new google.maps.LatLng(lat, long), this.fenceMeters);
+
+    this.fenceArea = new google.maps.Rectangle({
+      map: this.map.googleMap,
+      bounds: bounds,
+      strokeColor: 'red',
+      strokeWeight: 2,
+      fillOpacity: 0
+    });
+
+    this.map.fitBounds(bounds);
+  }
+
+  // Note: north = 0, east = 90, south = 180, west = -90
+  private createFenceBounds(point: google.maps.LatLng, fence: IFence): google.maps.LatLngBounds {
+    // shorten the function name
+    let computeOffset = google.maps.geometry.spherical.computeOffset;
+
+    // make a new point north
+    const n = computeOffset(point, fence.north, 0);
+
+    // make a new point northeast
+    const ne = computeOffset(n, fence.east, 90);
+
+    // make a new point south
+    const s = computeOffset(point, fence.south, 180);
+
+    // make a new point south-west
+    const sw = computeOffset(s, fence.west, -90);
+
+    return new google.maps.LatLngBounds(sw, ne);
   }
 
   private centerMap(lat: number, long: number): void {
@@ -138,23 +198,44 @@ export class MapGoogleComponent implements OnInit, OnDestroy {
     const monkey = this.markers.find(m => m.info ==='Monken Hadley.');
     const from = this.userMarker.options.position as google.maps.LatLngLiteral;
     const to = monkey.options.position as google.maps.LatLngLiteral;
-    this.getDirections(from, to);
+    this.checkFenceBounds(to);
+    this.renderDirections(from, to);
   }
 
   public showDirectionsAldi(): void {
     const aldi = this.markers.find(m => m.infoHeader ==='ALDI');
     const from = this.userMarker.options.position as google.maps.LatLngLiteral;
     const to = aldi.options.position as google.maps.LatLngLiteral;
-    this.getDirections(from, to);
+    this.checkFenceBounds(to);
+    this.renderDirections(from, to);
   }
 
   public showDirectionsOldHouse(): void {
     const from = this.userMarker.options.position as google.maps.LatLngLiteral;
     const to = '19 Thornfield Avenue, NW7 1LT';
-    this.getDirections(from, to);
+    let pos: google.maps.LatLngLiteral;
+
+    this.geocodeService.getAddressPosition(to).subscribe(p => {
+      this.renderDirections(from, p);
+      pos = p;
+    });
+
+    setTimeout(() => this.checkFenceBounds(pos), 200);
   }
 
-  private getDirections(from: google.maps.LatLngLiteral, to: google.maps.LatLngLiteral | string): void {
+  /* -------------------------------------------------------------------------------------
+  Shows a warning if the given position is outside the fence area
+  ------------------------------------------------------------------------------------- */
+  private checkFenceBounds(position: google.maps.LatLngLiteral): void {
+    if (!this.fenceArea.getBounds().contains(position)) {
+      this.alertingService.warning('This is far Nici, go with Mohackel');
+    }
+  }
+
+  /* -------------------------------------------------------------------------------------
+  Renders directions on the map
+  ------------------------------------------------------------------------------------- */
+  private renderDirections(from: google.maps.LatLngLiteral, to: google.maps.LatLngLiteral): void {
     this.clearDirections();
 
     this.directionsService.route(
@@ -175,7 +256,22 @@ export class MapGoogleComponent implements OnInit, OnDestroy {
           this.alertingService.error(`Directions service failed (${status})`);
         }
       }
-    )
+    );
+  }
+
+  /* -------------------------------------------------------------------------------------
+  Example of how to use the Distance Service
+  ------------------------------------------------------------------------------------- */
+  private determineDistances(): void {
+    const destinations: string[] = [
+      '19 Thornfield Avenue, NW7 1LT',
+      'Hadley Green Road, Barnet',
+      '30 Brookhill Rd, East Barnet, London, Barnet EN4 8SL'
+    ];
+    const origin = this.userMarker.options.position;
+
+    this.distanceService.calculateDistances(origin as google.maps.LatLngLiteral, destinations, google.maps.TravelMode.WALKING)
+        .subscribe((distances: IDistanceModel[]) => console.log(distances));
   }
 
   ngOnDestroy(): void {
